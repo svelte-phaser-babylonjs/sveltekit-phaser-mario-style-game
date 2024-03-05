@@ -79,34 +79,34 @@ export default class GameScene extends Phaser.Scene {
         // are we on the ground?
         let onGround = this.player.body?.blocked.down || this.player.body?.touching.down;
 
-        if (this.cursors.left.isDown) {
+        // movement to the left
+        if (this.cursors.left.isDown && !this.cursors.right.isDown) {
             (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(-gameConfig.playerSpeed);
-
             this.player.flipX = false;
-
-            if (!this.player.anims.isPlaying && onGround)
+            // play animation if none is playing
+            if (onGround && !this.player.anims.isPlaying)
                 this.player.anims.play('walking');
-
-        } else if (this.cursors.right.isDown) {
+        }
+        // movement to the right
+        else if (this.cursors.right.isDown && !this.cursors.left.isDown) {
             (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(gameConfig.playerSpeed);
-
             this.player.flipX = true;
-
-            if (!this.player.anims.isPlaying && onGround)
+            // play animation if none is playing
+            if (onGround && !this.player.anims.isPlaying)
                 this.player.anims.play('walking');
-        } else {
+        } else if (!this.cursors.left.isDown && !this.cursors.right.isDown) {
+            // make the player stop
             (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
+            // stop walking animation
             this.player.anims.stop();
-
+            // set default frame
             if (onGround)
                 this.player.setFrame(3);
         }
-
         // handle jumping
         if (onGround && (this.cursors.space.isDown || this.cursors.up.isDown)) {
-            // give the player a velocity in y
+            // give the player a velocity in Y
             (this.player.body as Phaser.Physics.Arcade.Body).setVelocityY(gameConfig.playerJumpSpeed);
-
             // stop the walking animation
             this.player.anims.stop();
             // change frame
