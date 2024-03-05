@@ -12,9 +12,6 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // parse json data
-        this.levelData = this.cache.json.get('levelData');
-
         // world bounds
         this.physics.world.bounds.width = gameConfig.worldWidth;
         this.physics.world.bounds.height = gameConfig.worldHeight;
@@ -74,6 +71,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private setupLevel() {
+        // parse json data
+        this.levelData = this.cache.json.get('levelData');
+
+        // create the group
         this.platforms = this.add.group();
 
         // create all the platforms
