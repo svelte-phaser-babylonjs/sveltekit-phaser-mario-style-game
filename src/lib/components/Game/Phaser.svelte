@@ -10,15 +10,11 @@
 	onMount(async () => {
 		config.canvas = gameContainer;
 		const game = new Phaser.Game(config);
-
-		window.addEventListener('resize', () => {
-			game.scale.resize(window.innerWidth, window.innerHeight);
-		});
 	});
 </script>
 
 <div>
-	<canvas bind:this={gameContainer} width={window.innerWidth} height={window.innerHeight} />
+	<canvas bind:this={gameContainer} />
 </div>
 
 <Hud />

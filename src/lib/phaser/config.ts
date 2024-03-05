@@ -7,18 +7,17 @@ import GameScene from './scenes/GameScene';
 export const gameConfig = {
     width: 360,
     height: 640,
+    playerSpeed: 150,
+    playerJumpSpeed: -600,
 }
 
 export const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.WEBGL,
-    width: window.innerWidth < gameConfig.width ? gameConfig.width : window.innerWidth,
-    height: window.innerHeight < gameConfig.height ? gameConfig.height : window.innerHeight,
+    width: gameConfig.width,
+    height: gameConfig.height,
 
     title: 'Monster Kong',
     pixelArt: false,
-    scale: {
-        mode: Phaser.Scale.NONE
-    },
 
     physics: {
         default: 'arcade',

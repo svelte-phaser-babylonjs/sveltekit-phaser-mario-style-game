@@ -50,6 +50,17 @@ export default class PreloaderScene extends Phaser.Scene {
     }
 
     create() {
+        // animations
+        this.anims.create({
+            key: 'walking',
+            frames: this.anims.generateFrameNames('player', {
+                frames: [0, 1, 2]
+            }),
+            frameRate: 12,
+            yoyo: true,
+            repeat: -1,
+        });
+
         this.scene.get('splash').events.emit('set_loader_progress', 1);
         this.time.delayedCall(50, () => {
             this.scene.stop('splash');
