@@ -6,6 +6,7 @@ export default class GameScene extends Phaser.Scene {
 
     private platforms!: Phaser.Physics.Arcade.StaticGroup;
     private fires!: Phaser.Physics.Arcade.Group;
+    private barrels!: Phaser.Physics.Arcade.Group;
 
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
@@ -23,9 +24,6 @@ export default class GameScene extends Phaser.Scene {
         this.physics.world.bounds.width = this.levelData.width;
         this.physics.world.bounds.height = this.levelData.height;
 
-        // camera bounds
-        this.cameras.main.setBounds(0, 0, this.levelData.width, this.levelData.height);
-
         this.setupLevel();
 
         // player
@@ -38,6 +36,8 @@ export default class GameScene extends Phaser.Scene {
         // constraint player to the game bounds
         (this.player.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
 
+        // camera bounds
+        this.cameras.main.setBounds(0, 0, this.levelData.width, this.levelData.height);
         this.cameras.main.startFollow(this.player);
 
         // Goal
@@ -47,11 +47,28 @@ export default class GameScene extends Phaser.Scene {
             'goal'
         );
 
+        // initiate barrel spawner
+        this.setupSpawner();
+
         // collisions
-        this.physics.add.collider([this.player, this.goal], this.platforms);
+        this.physics.add.collider([
+            this.player,
+            this.goal,
+            this.barrels
+        ] as Phaser.Types.Physics.Arcade.ArcadeColliderType,
+            this.platforms
+        );
 
         // overlap checks
-        this.physics.add.overlap(this.player, [this.fires, this.goal], this.restartGame, null, this);
+        this.physics.add.overlap(
+            this.player,
+            [
+                this.fires, this.goal, this.barrels
+            ] as Phaser.Types.Physics.Arcade.ArcadeColliderType,
+            this.restartGame,
+            undefined,
+            this
+        );
 
         // enable cursor keys
         this.cursors = this.input.keyboard!.createCursorKeys();
@@ -138,6 +155,44 @@ export default class GameScene extends Phaser.Scene {
             // add to the group
             this.fires.add(newObj);
         }
+    }
+
+    private setupSpawner() {
+        this.barrels = this.physics.add.group({
+            bounceY: 0.1,
+            bounceX: 1,
+            collideWorldBounds: true
+        });
+
+        // spawn barrels
+        let spwningEvent = this.time.addEvent({
+            delay: this.levelData.spawner.interval,
+            loop: true,
+            callbackScope: this,
+            callback: () => {
+                // create a barrel
+                let barrel = this.barrels.get(this.goal.x, this.goal.y, 'barrel');
+
+                // reactivate
+                barrel.setActive(true);
+                barrel.setVisible(true);
+                barrel.body.enable = true;
+
+                // set properties
+                barrel.setVelocityX(this.levelData.spawner.speed);
+
+                // lifespan
+                this.time.addEvent({
+                    delay: this.levelData.spawner.lifespan,
+                    repeat: 0,
+                    callbackScope: this,
+                    callback: () => {
+                        this.barrels.killAndHide(barrel);
+                        barrel.body.enable = false;
+                    }
+                });
+            }
+        })
     }
 
     private restartGame() {
