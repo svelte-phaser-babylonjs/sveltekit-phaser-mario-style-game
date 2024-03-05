@@ -63,6 +63,14 @@ export default class PreloaderScene extends Phaser.Scene {
             yoyo: true,
             repeat: -1,
         });
+        this.anims.create({
+            key: 'burning',
+            frames: this.anims.generateFrameNames('fire', {
+                frames: [0, 1]
+            }),
+            frameRate: 4,
+            repeat: -1,
+        });
 
         this.scene.get('splash').events.emit('set_loader_progress', 1);
         this.time.delayedCall(50, () => {

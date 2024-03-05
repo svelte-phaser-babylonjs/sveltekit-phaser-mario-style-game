@@ -2,7 +2,11 @@ import { gameConfig } from "../config";
 
 export default class GameScene extends Phaser.Scene {
     private player!: Phaser.Physics.Arcade.Sprite;
-    private platforms!: Phaser.GameObjects.Group;
+    private goal!: Phaser.Physics.Arcade.Sprite;
+
+    private platforms!: Phaser.Physics.Arcade.StaticGroup;
+    private fires!: Phaser.Physics.Arcade.Group;
+
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
     private levelData!: any;
@@ -12,19 +16,42 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // parse json data
+        this.levelData = this.cache.json.get('levelData').levels.level1;
+
         // world bounds
-        this.physics.world.bounds.width = gameConfig.worldWidth;
-        this.physics.world.bounds.height = gameConfig.worldHeight;
+        this.physics.world.bounds.width = this.levelData.width;
+        this.physics.world.bounds.height = this.levelData.height;
+
+        // camera bounds
+        this.cameras.main.setBounds(0, 0, this.levelData.width, this.levelData.height);
 
         this.setupLevel();
 
         // player
-        this.player = this.physics.add.sprite(175, 280, 'player', 3);
-
+        this.player = this.physics.add.sprite(
+            this.levelData.player.x,
+            this.levelData.player.y,
+            'player',
+            3
+        );
         // constraint player to the game bounds
         (this.player.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
 
-        this.physics.add.collider(this.player, this.platforms);
+        this.cameras.main.startFollow(this.player);
+
+        // Goal
+        this.goal = this.physics.add.sprite(
+            this.levelData.goal.x,
+            this.levelData.goal.y,
+            'goal'
+        );
+
+        // collisions
+        this.physics.add.collider([this.player, this.goal], this.platforms);
+
+        // overlap checks
+        this.physics.add.overlap(this.player, [this.fires, this.goal], this.restartGame, null, this);
 
         // enable cursor keys
         this.cursors = this.input.keyboard!.createCursorKeys();
@@ -71,13 +98,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private setupLevel() {
-        // parse json data
-        this.levelData = this.cache.json.get('levelData');
-
-        // create the group
-        this.platforms = this.add.group();
-
         // create all the platforms
+        this.platforms = this.physics.add.staticGroup();
         for (let i = 0; i < this.levelData.platforms.length; ++i) {
             let curr = this.levelData.platforms[i];
 
@@ -99,5 +121,32 @@ export default class GameScene extends Phaser.Scene {
             // add to the group
             this.platforms.add(newObj);
         }
+
+        // create all the fires
+        this.fires = this.physics.add.group({
+            allowGravity: false,
+            immovable: true,
+        });
+        for (let i = 0; i < this.levelData.fires.length; ++i) {
+            let curr = this.levelData.fires[i];
+
+            let newObj = this.add.sprite(curr.x, curr.y, 'fire').setOrigin(0);
+
+            // play burning animation
+            newObj.anims.play('burning');
+
+            // add to the group
+            this.fires.add(newObj);
+        }
+    }
+
+    private restartGame() {
+        // fade out
+        this.cameras.main.fade(500);
+
+        // when fade out completes, restart scene
+        this.cameras.main.on('camerafadeoutcomplete', () => {
+            this.scene.restart();
+        })
     }
 }
