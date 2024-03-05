@@ -7,6 +7,8 @@ import GameScene from './scenes/GameScene';
 export const gameConfig = {
     width: 360,
     height: 640,
+    worldWidth: 360,
+    worldHeight: 700,
     playerSpeed: 150,
     playerJumpSpeed: -600,
 }

@@ -28,6 +28,9 @@ export default class PreloaderScene extends Phaser.Scene {
                     margin: 1,
                     spacing: 1,
                 });
+
+                // json
+                this.load.json('levelData', 'assets/json/levelData.json');
             }
         ];
 

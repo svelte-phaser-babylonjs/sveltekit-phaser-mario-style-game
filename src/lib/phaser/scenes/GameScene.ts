@@ -5,28 +5,24 @@ export default class GameScene extends Phaser.Scene {
     private platforms!: Phaser.GameObjects.Group;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
+    private levelData!: any;
+
     constructor() {
         super('main');
     }
 
     create() {
-        this.platforms = this.add.group();
+        // parse json data
+        this.levelData = this.cache.json.get('levelData');
 
-        // Platforms and Ground
-        let ground = this.add.sprite(180, 604, 'ground');
-        let platform = this.add.tileSprite(180, 500, 4 * 36, 1 * 30, 'block');
+        // world bounds
+        this.physics.world.bounds.width = gameConfig.worldWidth;
+        this.physics.world.bounds.height = gameConfig.worldHeight;
 
-        // make them immovable and static
-        this.physics.add.existing(ground, true);
-        this.physics.add.existing(platform, true);
-
-        // update platforms group
-        this.platforms.add(ground);
-        this.platforms.add(platform);
-
+        this.setupLevel();
 
         // player
-        this.player = this.physics.add.sprite(180, 400, 'player', 3);
+        this.player = this.physics.add.sprite(175, 280, 'player', 3);
 
         // constraint player to the game bounds
         (this.player.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
@@ -77,4 +73,30 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    private setupLevel() {
+        this.platforms = this.add.group();
+
+        // create all the platforms
+        for (let i = 0; i < this.levelData.platforms.length; ++i) {
+            let curr = this.levelData.platforms[i];
+
+            let newObj;
+
+            if (curr.numTiles == 1) {
+                // create sprite
+                newObj = this.add.sprite(curr.x, curr.y, curr.key).setOrigin(0);
+            } else {
+                // create tilesprite
+                let width = this.textures.get(curr.key).get(0).width;
+                let height = this.textures.get(curr.key).get(0).height;
+                newObj = this.add.tileSprite(curr.x, curr.y, curr.numTiles * width, height, curr.key).setOrigin(0);
+            }
+
+            // enable physics
+            this.physics.add.existing(newObj, true);
+
+            // add to the group
+            this.platforms.add(newObj);
+        }
+    }
 }
